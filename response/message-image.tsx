@@ -1,7 +1,7 @@
 import { ImageResponse } from "@vercel/og";
 
 export const messageImage = (errorMessage: string): ImageResponse => {
-  return new ImageResponse(
+  const imageResponse = new ImageResponse(
     (
       <div
         style={{
@@ -23,4 +23,10 @@ export const messageImage = (errorMessage: string): ImageResponse => {
       height: 48,
     },
   );
+
+  imageResponse.headers.set("Cache-Control", "no-store, max-age=0");
+  imageResponse.headers.set("Pragma", "no-cache");
+  imageResponse.headers.set("Expires", "0");
+
+  return imageResponse;
 };

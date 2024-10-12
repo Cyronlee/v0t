@@ -1,10 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { kv } from "@vercel/kv";
-
-import { ImageResponse } from "@vercel/og";
-import { messageImage } from "@/response/message-image";
-import { itemResultImage } from "@/response/item-result-image";
 import { groupKey, itemKey } from "@/lib/keys";
+import { messageImage } from "@/response/message-image";
+
+let visit = 0;
 
 export const config = {
   runtime: "edge",
@@ -26,16 +25,9 @@ export default async function handler(
     return messageImage("Error: Missing parameter [name]");
   }
 
-  const items = (await kv.hgetall(groupKey(group))) || [];
-  const totalScore: number = Object.values(items).reduce(
-    // @ts-ignore
-    (acc, value) => acc + value,
-    0,
-  ) as number;
+  const result = await kv.hincrby(groupKey(group), itemKey(item), 1);
 
-  const score: number = (await kv.hget(groupKey(group), itemKey(item))) || 0;
-
-  const percentage = totalScore == 0 ? 0 : score / totalScore;
-
-  return itemResultImage(item, score, percentage * 100, true);
+  return messageImage(
+    `Successfully voted for [${item}], current score is [${result}]`,
+  );
 }
